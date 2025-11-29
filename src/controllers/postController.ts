@@ -62,3 +62,31 @@ export const savePetPost = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Failed to create pet post" });
   }
 };
+
+export const getAllPets = async (req: AuthRequest, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const pets = await Pet.find()
+        .populate("ownerId", "firstName lastName email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const total = await Pet.countDocuments();
+
+    res.status(200).json({
+      message: "All pet posts",
+      data: pets,
+      totalPages: Math.ceil(total / limit),
+      totalCount: total,
+      page,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch pet posts" });
+  }
+};
+
