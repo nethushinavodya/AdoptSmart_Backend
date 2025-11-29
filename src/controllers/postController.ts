@@ -185,3 +185,25 @@ export const updatePetPost = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const deletePetPost = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const { id } = req.params;
+    const pet = await Pet.findById(id);
+
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+
+    // Ensure only owner can delete
+    if (pet.ownerId.toString() !== req.user.sub) {
+      return res.status(403).json({ message: "Not allowed to delete this post" });
+    }
+
+    await Pet.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Pet post deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete pet post" });
+  }
+};
