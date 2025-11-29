@@ -74,3 +74,42 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+// ------------------ REGISTER ADMIN ------------------
+export const registerAdmin = async (req: Request, res: Response) => {
+  try {
+    const { _id, username, email, password, contactNumber, location } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const admin = await User.create({
+      _id,
+      username,
+      email,
+      password: hashedPassword,
+      contactNumber,
+      location,
+      role: [Role.Admin],
+    });
+
+    res.status(201).json({
+      message: "Admin registered successfully",
+      data: {
+        id: admin._id,
+        email: admin.email,
+        username: admin.username,
+        role: admin.role,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
