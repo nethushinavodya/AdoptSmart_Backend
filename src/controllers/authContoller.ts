@@ -42,3 +42,35 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
+// ------------------ LOGIN ------------------
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const valid = await bcrypt.compare(password, existingUser.password);
+    if (!valid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const accessToken = signAccessToken(existingUser);
+
+    res.status(200).json({
+      message: "Login successful",
+      data: {
+        id: existingUser._id,
+        email: existingUser.email,
+        username: existingUser.username,
+        role: existingUser.role,
+        accessToken,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
