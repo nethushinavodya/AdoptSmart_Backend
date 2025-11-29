@@ -118,3 +118,70 @@ export const getMyPets = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updatePetPost = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const { id } = req.params;
+    const pet = await Pet.findById(id);
+
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+
+    // Ensure only owner can update
+    if (pet.ownerId.toString() !== req.user.sub) {
+      return res.status(403).json({ message: "Not allowed to update this post" });
+    }
+
+    const {
+      name,
+      species,
+      breed,
+      age,
+      gender,
+      description,
+      adoptionType,
+      price,
+      contactInfo,
+      location,
+      status,
+    } = req.body;
+
+    // Optional image update
+    if (req.file) {
+      console.log(req.file);
+      const buffer = req.file.buffer;
+      const result: any = await new Promise((resolve, reject) => {
+        const upload_stream = cloudinary.uploader.upload_stream(
+            { folder: "pets" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+        );
+        upload_stream.end(buffer);
+      });
+      pet.imageUrl = result.secure_url;
+    }
+
+    // Update other fields
+    pet.name = name || pet.name;
+    pet.species = species || pet.species;
+    pet.breed = breed || pet.breed;
+    pet.age = age || pet.age;
+    pet.gender = gender || pet.gender;
+    pet.description = description || pet.description;
+    pet.adoptionType = adoptionType || pet.adoptionType;
+    pet.price = adoptionType === "Paid" ? price : undefined;
+    pet.contactInfo = contactInfo || pet.contactInfo;
+    pet.location = location || pet.location;
+    pet.status = status || pet.status;
+
+    await pet.save();
+
+    res.status(200).json({ message: "Pet post updated successfully", data: pet });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update pet post" });
+  }
+};
+
