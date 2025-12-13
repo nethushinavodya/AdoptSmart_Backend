@@ -70,10 +70,13 @@ export const getAllPets = async (req: AuthRequest, res: Response) => {
     const skip = (page - 1) * limit;
 
     const pets = await Pet.find()
-        .populate("ownerId", "firstName lastName email")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
+      .populate(
+        "ownerId",
+        "username email profilePicture contactNumber location"
+      )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const total = await Pet.countDocuments();
 
@@ -99,9 +102,13 @@ export const getMyPets = async (req: AuthRequest, res: Response) => {
     const skip = (page - 1) * limit;
 
     const pets = await Pet.find({ ownerId: req.user.sub })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
+      .populate(
+        "ownerId",
+        "username email profilePicture contactNumber location"
+      )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const total = await Pet.countDocuments({ ownerId: req.user.sub });
 
