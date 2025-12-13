@@ -2,7 +2,13 @@ import { Request, Response } from "express"
 import { User } from "../models/userModel"
 import { AuthRequest } from "../middlewares/auth"
 import cloudinary from "../config/cloudinary"
+import jwt from "jsonwebtoken";
+import {signAccessToken} from "../utils/token";
+import dotenv from "dotenv"
+dotenv.config()
 
+
+// ------------------ UPDATE USER ------------------
 export const updateUser = async (req : AuthRequest , res : Response) => {
    try {
       const {id} = req.params;
@@ -52,7 +58,8 @@ export const updateUser = async (req : AuthRequest , res : Response) => {
       res.status(500).json({message : "Something went wrong"})
    }
 };
-// delete account
+
+// ------------------ DELETE ACCOUNT ------------------
 export const deleteAccount = async (req : AuthRequest , res : Response) => {
    try {
       if(!req.user){

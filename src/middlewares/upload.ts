@@ -1,10 +1,18 @@
-// multer.ts
-// files.ts
+// // multer.ts
+// // files.ts
+//
+// import multer from "multer"
+//
+// // can disk or memory
+// // we choees memory
+// const storage = multer.memoryStorage()
+//
+// export const upload = multer({ storage }) // storage: storage
 
-import multer from "multer"
+// middlewares/multer.ts
 
-// can disk or memory
-// we choees memory
-const storage = multer.memoryStorage()
+import multer from "multer";
 
-export const upload = multer({ storage }) // storage: storage
+const storage = multer.memoryStorage();
+
+export const upload = multer({ storage });
