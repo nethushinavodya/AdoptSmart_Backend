@@ -1,10 +1,11 @@
 import express from "express"
 import cors from "cors"
-import authRouter from "./routes/auth"
+import authRouter from "./routes/authRoutes"
 import postRouter from "./routes/petPostRoutes"
 import userRouter from "./routes/userRoutes"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
+import successStoryRoutes from "./routes/successStoryRoutes";
 dotenv.config()
 
 const SERVER_PORT = process.env.SERVER_PORT
@@ -23,6 +24,7 @@ app.use(
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/post", postRouter)
 app.use("/api/v1/user", userRouter)
+app.use("/api/v1/successStory", successStoryRoutes)
 
 mongoose
   .connect(MONGO_URI)
