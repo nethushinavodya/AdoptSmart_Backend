@@ -22,7 +22,7 @@ const petSchema = new Schema<IPet>(
   {
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", 
+      ref: "User",
       required: true,
     },
     name: { type: String, required: true },
