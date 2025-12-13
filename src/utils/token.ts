@@ -1,3 +1,18 @@
+// import { IUser } from "../models/userModel"
+// import jwt from "jsonwebtoken"
+// import dotenv from "dotenv"
+// dotenv.config()
+//
+// const JWT_SECRET = process.env.JWT_SECRET as string
+//
+// export const signAccessToken = (user: IUser): string => {
+//   return jwt.sign({ sub: user._id, roles: user.role }, JWT_SECRET, {
+//     expiresIn: "30m"
+//   })
+// }
+//
+// console.log(process.env.JWT_SECRET)
+
 import { IUser } from "../models/userModel"
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
@@ -6,9 +21,25 @@ dotenv.config()
 const JWT_SECRET = process.env.JWT_SECRET as string
 
 export const signAccessToken = (user: IUser): string => {
-  return jwt.sign({ sub: user._id, roles: user.role }, JWT_SECRET, {
-    expiresIn: "30m"
-  })
+  return jwt.sign(
+      {
+        sub: user._id,
+        roles: user.role
+      },
+      JWT_SECRET,
+      {
+        expiresIn: "30m"
+      }
+  )
 }
 
-console.log(process.env.JWT_SECRET)
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string
+export const signRefreshToken = (user: IUser): string => {
+  return jwt.sign(
+      {
+        sub: user._id
+      },
+      JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+  )
+}
