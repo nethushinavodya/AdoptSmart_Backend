@@ -1,6 +1,7 @@
 import { Router } from "express"
 import {
   getMyProfile,
+  handleRefreshToken,
   login,
   registerAdmin,
   registerUser
@@ -8,7 +9,6 @@ import {
 import { authenticate } from "../middlewares/auth"
 import { requireRole } from "../middlewares/role"
 import { Role } from "../models/userModel"
-
 const router = Router()
 
 // register (only USER) - public
@@ -25,9 +25,10 @@ router.post(
   registerAdmin
 )
 
-// me - Admin or User both
+// refresh token - public
+router.post("/refresh-token", handleRefreshToken)
+// get my profile - private
 router.get("/me", authenticate, getMyProfile)
 
-// router.get("/test", authenticate, () => {})
 
 export default router
