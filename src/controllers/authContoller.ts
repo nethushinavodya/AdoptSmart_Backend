@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { User, Role } from "../models/userModel";
-import { signAccessToken } from "../utils/token";
+import { signAccessToken, signRefreshToken } from "../utils/token";
 import { AuthRequest } from "../middlewares/auth";
+import jwt from "jsonwebtoken";
 
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string
 // ------------------ REGISTER USER ------------------
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -58,6 +60,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const accessToken = signAccessToken(existingUser);
+    const refreshToken = signRefreshToken(existingUser) // this
 
     res.status(200).json({
       message: "Login successful",
@@ -67,6 +70,7 @@ export const login = async (req: Request, res: Response) => {
         username: existingUser.username,
         role: existingUser.role,
         accessToken,
+        refreshToken
       },
     });
   } catch (err) {
@@ -74,7 +78,6 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 // ------------------ REGISTER ADMIN ------------------
 export const registerAdmin = async (req: Request, res: Response) => {
@@ -134,3 +137,24 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// ------------------ HANDLE REFRESH TOKEN ------------------
+export const handleRefreshToken = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body
+    if (!token) {
+      return res.status(400).json({ message: "Token required" })
+    }
+    // import jwt from "jsonwebtoken"
+    const payload = jwt.verify(token, JWT_REFRESH_SECRET)
+    // payload.sub - userID
+    const user = await User.findById(payload.sub)
+    if (!user) {
+      return res.status(403).json({ message: "Invalid refresh token" })
+    }
+    const accessToken = signAccessToken(user)
+    res.status(200).json({ accessToken })
+  } catch (err) {
+    res.status(403).json({ message: "Invalid or expire token" })
+  }
+}
