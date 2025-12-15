@@ -5,7 +5,10 @@ export interface IPet extends Document {
   name: string;
   species: string;
   breed: string;
-  age: number;
+  age: {
+    value: number;
+    unit: "Months" | "Years";
+  };
   gender: string;
   description: string;
   imageUrl: string;
@@ -28,7 +31,10 @@ const petSchema = new Schema<IPet>(
     name: { type: String, required: true },
     species: { type: String, required: true }, 
     breed: { type: String, required: true },
-    age: { type: Number, required: true },
+    age: {
+      value: { type: Number, required: true },
+      unit: { type: String, enum: ["Months", "Years"], required: true },
+    },
     gender: { type: String, required: true },
     description: { type: String, required: true },
     imageUrl: { type: String, required: true },
