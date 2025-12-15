@@ -20,6 +20,21 @@ export const savePetPost = async (req: AuthRequest, res: Response) => {
       location,
     } = req.body;
 
+    let ageValue: number | null = null;
+    let ageUnit: "Months" | "Years" | null = null;
+    if (typeof age === "string") {
+      const [val, unit] = age.trim().split(/\s+/);
+      const parsed = Number(val);
+      if (!isNaN(parsed) && (unit === "Months" || unit === "Years")) {
+        ageValue = parsed;
+        ageUnit = unit;
+      }
+    }
+
+    if (ageValue === null || ageUnit === null) {
+      return res.status(400).json({ message: "Invalid age format" });
+    }
+
     let imageUrl = "";
 
     if (req.file) {
@@ -43,7 +58,10 @@ export const savePetPost = async (req: AuthRequest, res: Response) => {
       name,
       species,
       breed,
-      age,
+      age: {
+        value: ageValue,
+        unit: ageUnit,
+      },
       gender,
       description,
       adoptionType,
@@ -143,7 +161,7 @@ export const updatePetPost = async (req: AuthRequest, res: Response) => {
       name,
       species,
       breed,
-      age,
+      age, // may be "3 Years" etc.
       gender,
       description,
       adoptionType,
@@ -159,11 +177,11 @@ export const updatePetPost = async (req: AuthRequest, res: Response) => {
       const buffer = req.file.buffer;
       const result: any = await new Promise((resolve, reject) => {
         const upload_stream = cloudinary.uploader.upload_stream(
-            { folder: "pets" },
-            (error, result) => {
-              if (error) return reject(error);
-              resolve(result);
-            }
+          { folder: "pets" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
         );
         upload_stream.end(buffer);
       });
@@ -174,11 +192,23 @@ export const updatePetPost = async (req: AuthRequest, res: Response) => {
     pet.name = name || pet.name;
     pet.species = species || pet.species;
     pet.breed = breed || pet.breed;
-    pet.age = age || pet.age;
+
+    // If age string is provided, parse and update
+    if (typeof age === "string" && age.trim().length > 0) {
+      const [val, unit] = age.trim().split(/\s+/);
+      const parsed = Number(val);
+      if (!isNaN(parsed) && (unit === "Months" || unit === "Years")) {
+        pet.age = {
+          value: parsed,
+          unit,
+        };
+      }
+    }
+
     pet.gender = gender || pet.gender;
     pet.description = description || pet.description;
     pet.adoptionType = adoptionType || pet.adoptionType;
-    pet.price = adoptionType === "Paid" ? price : undefined;
+    pet.price = pet.adoptionType === "Paid" ? price : undefined;
     pet.contactInfo = contactInfo || pet.contactInfo;
     pet.location = location || pet.location;
     pet.status = status || pet.status;
