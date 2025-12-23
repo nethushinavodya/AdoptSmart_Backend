@@ -16,7 +16,8 @@ export interface IPet extends Document {
   price?: number;
   contactInfo?: string;
   location: string;
-  status: "Available" | "Adopted" | "Pending"; 
+  status: "Available" | "Adopted" | "Pending";
+  postStatus: "Pending" | "Approved";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -50,6 +51,12 @@ const petSchema = new Schema<IPet>(
       type: String,
       enum: ["Available", "Adopted"],
       default: "Available", 
+    },
+    postStatus: {
+      type: String,
+      enum: ["Pending", "Approved"],
+      default: "Pending",
+      index: true,
     },
   },
   {
