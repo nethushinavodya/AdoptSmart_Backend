@@ -1,46 +1,36 @@
 import axios from "axios"
 import { Request, Response } from "express"
 
-export const genrateContent = async (req: Request, res: Response) => {
+export const generateContent = async (req: Request, res: Response) => {
     try {
-        const { text, maxToken } = req.body
+        const { text } = req.body
 
         if (!text) {
             return res.status(400).json({ message: "Text is required" })
         }
 
         const aiResponse = await axios.post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+            "https://api.groq.com/openai/v1/chat/completions",
             {
-                contents: [
-                    {
-                        parts: [
-                            {
-                                text: text
-                            }
-                        ]
-                    }
-                ],
-                generationConfig: {
-                    maxOutputTokens: maxToken || 150
-                }
+                model: "llama-3.1-8b-instant",
+                messages: [{ role: "user", content: text }],
+                max_tokens: 150,
+                temperature: 0.7
             },
             {
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-goog-api-key": "AIzaSyB5GTmJ0NIrmJvW2Xec4zM5c7DoToEn2QI"
+                    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                    "Content-Type": "application/json"
                 }
             }
         )
 
-        const genratedContent =
-            aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "No data"
+        return res.status(200).json({
+            data: aiResponse.data.choices[0].message.content
+        })
 
-        res.status(200).json({ data: genratedContent })
-
-    } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: "AI generation failed" })
+    } catch (error: any) {
+        console.error("Groq Error:", error.response?.data || error.message)
+        return res.status(500).json({ message: "AI generation failed" })
     }
 }
