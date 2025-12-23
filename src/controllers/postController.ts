@@ -70,6 +70,7 @@ export const savePetPost = async (req: AuthRequest, res: Response) => {
       imageUrl,
       location,
       status: "Available",
+      postStatus: "Pending",
     });
 
     await newPet.save();
@@ -169,6 +170,8 @@ export const updatePetPost = async (req: AuthRequest, res: Response) => {
       contactInfo,
       location,
       status,
+      // NOTE: do NOT allow postStatus updates here (admin-only endpoint later)
+      // postStatus,
     } = req.body;
 
     // Optional image update
@@ -212,6 +215,7 @@ export const updatePetPost = async (req: AuthRequest, res: Response) => {
     pet.contactInfo = contactInfo || pet.contactInfo;
     pet.location = location || pet.location;
     pet.status = status || pet.status;
+    // intentionally ignoring req.body.postStatus here
 
     await pet.save();
 
@@ -242,5 +246,65 @@ export const deletePetPost = async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to delete pet post" });
+  }
+};
+
+export const getApprovedPets = async (req: AuthRequest, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = { postStatus: "Approved" as const };
+
+    const pets = await Pet.find(filter)
+      .populate("ownerId", "username email profilePicture contactNumber location")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Pet.countDocuments(filter);
+
+    res.status(200).json({
+      message: "Approved pet posts",
+      data: pets,
+      totalPages: Math.ceil(total / limit),
+      totalCount: total,
+      page,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch approved pet posts" });
+  }
+};
+
+export const getPendingPets = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = { postStatus: "Pending" as const, ownerId: req.user.sub };
+
+    const pets = await Pet.find(filter)
+      .populate("ownerId", "username email profilePicture contactNumber location")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Pet.countDocuments(filter);
+
+    res.status(200).json({
+      message: "My pending pet posts",
+      data: pets,
+      totalPages: Math.ceil(total / limit),
+      totalCount: total,
+      page,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch pending pet posts" });
   }
 };
