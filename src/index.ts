@@ -6,6 +6,9 @@ import userRouter from "./routes/userRoutes"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
 import successStoryRoutes from "./routes/successStoryRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
+import ai from "./routes/ai";
+import adminRoutes from "./routes/adminRoutes";
 dotenv.config()
 
 const SERVER_PORT = process.env.SERVER_PORT
@@ -25,6 +28,9 @@ app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/post", postRouter)
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/successStory", successStoryRoutes)
+app.use("/api/v1/favorites", favoriteRoutes);
+app.use("/api/v1/ai", ai);
+app.use("/api/v1/admin", adminRoutes);
 
 mongoose
   .connect(MONGO_URI)
