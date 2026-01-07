@@ -3,61 +3,25 @@ import cors from "cors"
 import authRouter from "./routes/authRoutes"
 import postRouter from "./routes/petPostRoutes"
 import userRouter from "./routes/userRoutes"
-import dotenv from "dotenv";
-dotenv.config();
-
+import dotenv from "dotenv"
 import mongoose from "mongoose"
 import successStoryRoutes from "./routes/successStoryRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import ai from "./routes/ai";
 import adminRoutes from "./routes/adminRoutes";
+dotenv.config()
 
-// Detect deprecated npm config usage and advise correct flag
-// If npm was invoked with the deprecated `production` config flag, give clear guidance.
-// Note: the "npm WARN config production" message is emitted by npm during install.
-// To avoid that warning use: `npm install --omit=dev`
-if (typeof process.env.npm_config_production !== "undefined") {
-  console.warn(
-    "[npm config] Detected npm `production` config. This warning originates from npm during install.\n" +
-      "To avoid it use `npm install --omit=dev` (recommended), or set NODE_ENV explicitly in your environment.\n" +
-      "Example: NODE_ENV=production npm run build"
-  );
-  // reflect intent at runtime if NODE_ENV not provided
-  if (!process.env.NODE_ENV) {
-    process.env.NODE_ENV = "production";
-  }
-}
-
-// Safe defaults
-const SERVER_PORT = process.env.SERVER_PORT || "5000";
-
-// Ensure we read the env var(s) in a robust way and never pass undefined to mongoose
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  process.env.MONGO_URL || // sometimes named differently
-  process.env.DATABASE_URL || // another common name
-  "mongodb://127.0.0.1:27017/adoptsmart"; // local fallback for dev
-
-if (
-  !process.env.MONGO_URI &&
-  !process.env.MONGO_URL &&
-  !process.env.DATABASE_URL
-) {
-  console.warn(
-    "[startup] WARNING: No remote Mongo DB URI provided via env (MONGO_URI/MONGO_URL/DATABASE_URL). Using local fallback:",
-    MONGO_URI
-  );
-}
-
+const SERVER_PORT = process.env.SERVER_PORT
+const MONGO_URI = process.env.MONGO_URI as string
+const FRONTEND_URL = process.env.CLIENT_URL as string
 const app = express()
 
 app.use(express.json())
 app.use(
-    cors({
-        origin: process.env.CLIENT_URL || "*",
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-        credentials: true,
-    })
+  cors({
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  })
 )
 
 app.use("/api/v1/auth", authRouter)
@@ -69,17 +33,15 @@ app.use("/api/v1/ai", ai);
 app.use("/api/v1/admin", adminRoutes);
 
 mongoose
-  .connect(MONGO_URI, {
-    // ...existing options...
-    // e.g., useNewUrlParser: true, useUnifiedTopology: true
-  } as mongoose.ConnectOptions)
+  .connect(MONGO_URI)
   .then(() => {
-    console.log("[startup] MongoDB connected");
-    app.listen(Number(SERVER_PORT), () => {
-      console.log(`Server is running on ${SERVER_PORT}`)
-    })
+    console.log("DB connected")
   })
   .catch((err) => {
-    console.error("[startup] MongoDB connection error:", err);
-    process.exit(1); // fail fast so you notice the config issue
+    console.error(`DB connection fail: ${err}`)
+    process.exit(1)
   })
+
+app.listen(SERVER_PORT, () => {
+  console.log(`Server is running on ${SERVER_PORT}`)
+})
