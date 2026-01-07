@@ -19,7 +19,9 @@ const app = express()
 app.use(express.json())
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["https://adopt-smart-frontend.vercel.app/",
+      "http://localhost:5173",
+      "https://adopt-smart.vercel.app/"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   })
 )
