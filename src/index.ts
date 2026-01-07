@@ -3,16 +3,34 @@ import cors from "cors"
 import authRouter from "./routes/authRoutes"
 import postRouter from "./routes/petPostRoutes"
 import userRouter from "./routes/userRoutes"
-import dotenv from "dotenv"
+import dotenv from "dotenv";
+dotenv.config();
+
 import mongoose from "mongoose"
 import successStoryRoutes from "./routes/successStoryRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import ai from "./routes/ai";
 import adminRoutes from "./routes/adminRoutes";
-dotenv.config()
 
 const SERVER_PORT = process.env.SERVER_PORT
-const MONGO_URI = process.env.MONGO_URI as string
+
+// Ensure we read the env var(s) in a robust way and never pass undefined to mongoose
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  process.env.MONGO_URL || // sometimes named differently
+  process.env.DATABASE_URL || // another common name
+  "mongodb://127.0.0.1:27017/adoptsmart"; // local fallback for dev
+
+if (
+  !process.env.MONGO_URI &&
+  !process.env.MONGO_URL &&
+  !process.env.DATABASE_URL
+) {
+  console.warn(
+    "[startup] WARNING: No remote Mongo DB URI provided via env (MONGO_URI/MONGO_URL/DATABASE_URL). Using local fallback:",
+    MONGO_URI
+  );
+}
 
 const app = express()
 
@@ -34,15 +52,17 @@ app.use("/api/v1/ai", ai);
 app.use("/api/v1/admin", adminRoutes);
 
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGO_URI, {
+    // ...existing options...
+    // e.g., useNewUrlParser: true, useUnifiedTopology: true
+  } as mongoose.ConnectOptions)
   .then(() => {
-    console.log("DB connected")
+    console.log("[startup] MongoDB connected");
+    app.listen(SERVER_PORT, () => {
+      console.log(`Server is running on ${SERVER_PORT}`)
+    })
   })
   .catch((err) => {
-    console.error(`DB connection fail: ${err}`)
-    process.exit(1)
+    console.error("[startup] MongoDB connection error:", err);
+    process.exit(1); // fail fast so you notice the config issue
   })
-
-app.listen(SERVER_PORT, () => {
-  console.log(`Server is running on ${SERVER_PORT}`)
-})
