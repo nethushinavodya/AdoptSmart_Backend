@@ -13,11 +13,16 @@ import ai from "./routes/ai";
 import adminRoutes from "./routes/adminRoutes";
 
 // Detect deprecated npm config usage and advise correct flag
+// If npm was invoked with the deprecated `production` config flag, give clear guidance.
+// Note: the "npm WARN config production" message is emitted by npm during install.
+// To avoid that warning use: `npm install --omit=dev`
 if (typeof process.env.npm_config_production !== "undefined") {
   console.warn(
-    "[npm config] Detected use of the deprecated npm `production` config. " +
-      "Prefer `npm install --omit=dev` (or set NODE_ENV) instead of relying on npm config 'production'."
+    "[npm config] Detected npm `production` config. This warning originates from npm during install.\n" +
+      "To avoid it use `npm install --omit=dev` (recommended), or set NODE_ENV explicitly in your environment.\n" +
+      "Example: NODE_ENV=production npm run build"
   );
+  // reflect intent at runtime if NODE_ENV not provided
   if (!process.env.NODE_ENV) {
     process.env.NODE_ENV = "production";
   }
