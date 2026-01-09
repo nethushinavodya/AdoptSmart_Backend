@@ -4,10 +4,12 @@ import { Pet } from '../models/PetPostModel';
 import { User } from '../models/userModel';
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: 'nethushiperera03@gmail.com',
-    pass: 'tamlkaoprefnkstm',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -56,7 +58,7 @@ export const contactOwnerToAdoptPet = async (req: AuthedRequest, res: Response) 
       `\n\nBest regards,\nAdoptSmart Team`;
 
     await transporter.sendMail({
-      from: `"AdoptSmart" <noreply@adoptsmart.com>`,
+      from: `"AdoptSmart" <nethushiperera03@gmail.com>`,
       to: ownerEmail,
       subject,
       text
